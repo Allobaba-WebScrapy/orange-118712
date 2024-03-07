@@ -3,7 +3,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.options import Options
 import re
+from select_activites import link
 
 #----------------------------------------------------------
 def click_button_and_scrap_page(driver, onclick_value, timeout=10):
@@ -34,25 +36,31 @@ def click_button_and_scrap_page(driver, onclick_value, timeout=10):
 #----------------------------------------------------------
 
 # Initialize the WebDriver
+# chrome_options = Options()
+# chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--disable-gpu')
 driver = webdriver.Chrome()
-driver.get('https://www.118712.fr/activite/fleuristes')
+driver.get(link)
+
 
 # Click the button of coockies
 button2 = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button.btn')))
 button2.click()
 
+j = 1
 # How many button in next page button
-if(driver.find_elements(By.CLASS_NAME, 'len2')):
+if(driver.find_elements(By.CLASS_NAME, 'len3')):
+    page_next = driver.find_elements(By.CLASS_NAME, 'len3')
+elif(driver.find_elements(By.CLASS_NAME, 'len2')):
     page_next = driver.find_elements(By.CLASS_NAME, 'len2')
 else:
     page_next = driver.find_elements(By.CLASS_NAME, 'len1')
+    j = 2
 
 num_of_button_pageNext = len(page_next)
-
-event_name = page_next[num_of_button_pageNext - 1].get_attribute("onclick")
+event_name = page_next[num_of_button_pageNext - j].get_attribute("onclick")
 
 number_of_pages = int(re.search(r'\d+', event_name).group()) # changePageUseCurrentBounds(50) ---> 50
-
 
 cart =[] #array of tittle cart
 # function of scraping all page in one activites
