@@ -6,25 +6,21 @@ from selenium.common.exceptions import TimeoutException
 import re
 from select_activitesV2 import ActivitesScraper
 from selenium.webdriver.chrome.options import Options
-from flask import Flask, jsonify
+from flask import Flask, jsonify , Response
+import json
 
 app = Flask(__name__)
 
 class Scraper:
     def __init__(self):
         chrome_options = Options()
-        chrome_options.add_argument('--user-agent=YourUserAgentString')
+        chrome_options.add_argument('--user-agent=Chrome/123.0.6312.31')
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--disable-gpu')
         self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.implicitly_wait(10)
 
-        self.cart = []
-
-    def wait_for_page_load(self, timeout=10):
-        # Wait for the presence of the body element
-        WebDriverWait(self.driver, timeout).until(
-            EC.presence_of_element_located((By.TAG_NAME, 'body')))
+        self.carts = []
 
         # Wait for the body element to be visible
     def click_button_and_scrap_page(self, onclick_value, timeout=10):
@@ -38,12 +34,24 @@ class Scraper:
 
         try:
             WebDriverWait(self.driver, timeout).until(
-                EC.visibility_of_all_elements_located((By.CLASS_NAME, 'h4'))
+                EC.visibility_of_all_elements_located((By.CLASS_NAME, 'bi_denomination'))
             )
-            titles = self.driver.find_elements(By.CLASS_NAME, 'h4')
-            for title in titles:
-                if title.text not in self.cart:
-                    self.cart.append(title.text)
+            
+            div_links = self.driver.find_elements(By.CLASS_NAME, 'bi_denomination')
+            for links in div_links:
+                try:
+                    link = links.find_element(By.TAG_NAME, "a").get_attribute("href")
+                    if link not in self.carts: 
+                        self.carts.append(link)
+                except:
+                    continue
+                
+            # cart =[]
+            # for title in titles:
+            #     if title.text not in self.carts:
+            #         self.carts.append(title.text)
+            # self.carts.append(cart)
+            # self.carts.append(list(set(titles)))
         except TimeoutException:
             print("Timeout while waiting for elements to be visible.")
 
@@ -56,11 +64,11 @@ class Scraper:
 
         self.driver.get(link)
         
-        self.wait_for_page_load()
-        
+        # click button of cookies
         button2 = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button.btn')))
         button2.click()
 
+        #find class name of last page
         j = 1
         if self.driver.find_elements(By.CLASS_NAME, 'len3'):
             page_next = self.driver.find_elements(By.CLASS_NAME, 'len3')
@@ -70,13 +78,15 @@ class Scraper:
             page_next = self.driver.find_elements(By.CLASS_NAME, 'len1')
             j = 2
 
+        # get the number of pages
         num_of_button_pageNext = len(page_next)
         event_name = page_next[num_of_button_pageNext - j].get_attribute("onclick")
         number_of_pages = int(re.search(r'\d+', event_name).group())
 
-        for i in range(1, number_of_pages + 1):
+        #send the pages to the function click_button_and_scrap_page
+        for i in range(1, 3):
             self.click_button_and_scrap_page(f'changePageUseCurrentBounds({i})')
-
+            # yield self.carts[-1]
         self.driver.quit()
 
 # Usage:
@@ -88,7 +98,15 @@ def index():
 def scrape():
     scraper = Scraper()
     scraper.scrape_activites('Fleuristes')
-    return jsonify(scraper.cart)
+    return jsonify(scraper.carts)
+    
+    
+    # def generate():
+    #     scraper = Scraper()
+    #     for i in scraper.scrape_activites('Fleuristes'):
+    #         yield json.dumps({"Page":i})
+            
+    # return Response(generate(), mimetype='text/event-stream')
 
 
 if __name__ == "__main__":
