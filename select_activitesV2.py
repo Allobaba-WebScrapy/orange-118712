@@ -8,13 +8,14 @@ class ActivitesScraper:
 
     def find_name_and_lien_of_activites(self):
         self.driver.get('https://www.118712.fr/')
+
         list_de_name_activites = []
         list_de_lien_activites = []
         
         list_activites = WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.CLASS_NAME, "dropdown-list"))
         ).find_elements(By.TAG_NAME, "li")
-
+        
         for a in list_activites:
             a_elements = a.find_elements(By.TAG_NAME, "a")
             for a_element in a_elements:

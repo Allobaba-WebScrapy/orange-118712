@@ -13,6 +13,7 @@ app = Flask(__name__)
 class Scraper:
     def __init__(self):
         chrome_options = Options()
+        chrome_options.add_argument('--user-agent=YourUserAgentString')
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--disable-gpu')
         self.driver = webdriver.Chrome(options=chrome_options)
@@ -20,6 +21,12 @@ class Scraper:
 
         self.cart = []
 
+    def wait_for_page_load(self, timeout=10):
+        # Wait for the presence of the body element
+        WebDriverWait(self.driver, timeout).until(
+            EC.presence_of_element_located((By.TAG_NAME, 'body')))
+
+        # Wait for the body element to be visible
     def click_button_and_scrap_page(self, onclick_value, timeout=10):
         try:
             button = WebDriverWait(self.driver, timeout).until(
@@ -48,7 +55,9 @@ class Scraper:
         link = links[index_name]
 
         self.driver.get(link)
-
+        
+        self.wait_for_page_load()
+        
         button2 = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button.btn')))
         button2.click()
 
