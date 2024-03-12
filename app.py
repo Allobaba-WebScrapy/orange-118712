@@ -5,21 +5,25 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import re
 from select_activitesV2 import ActivitesScraper
+from cart_scrape import INFOCART
+from url_encrypted import ENCRYPT
 from selenium.webdriver.chrome.options import Options
 from flask import Flask, jsonify , Response
 import json
+
 
 app = Flask(__name__)
 
 class Scraper:
     def __init__(self):
-        chrome_options = Options()
-        chrome_options.add_argument('--user-agent=Chrome/123.0.6312.31')
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--disable-gpu')
-        self.driver = webdriver.Chrome(options=chrome_options)
+        # chrome_options = Options()
+        # chrome_options.add_argument('--user-agent=Chrome/123.0.6312.31')
+        # chrome_options.add_argument('--headless')
+        # chrome_options.add_argument('--disable-gpu')
+        self.driver = webdriver.Chrome()
         self.driver.implicitly_wait(10)
 
+        self.cart_link = []
         self.carts = []
 
         # Wait for the body element to be visible
@@ -39,13 +43,21 @@ class Scraper:
             
             div_links = self.driver.find_elements(By.CLASS_NAME, 'bi_denomination')
             for links in div_links:
-                try:
+                if(links.find_element(By.TAG_NAME, "a")):
                     link = links.find_element(By.TAG_NAME, "a").get_attribute("href")
-                    if link not in self.carts: 
-                        self.carts.append(link)
-                except:
-                    continue
-                
+                else:
+                    class_link = links.find_element(By.TAG_NAME, "span").get_attribute("class")
+                    print(class_link)
+                #     take_link = re.search(r'adpJam_tgt_(.*)', class_link)
+                #     print(class_link)
+                #     link = encrypt_url(take_link)
+                if link not in self.carts: 
+                    self.cart_link.append(link)
+
+            for i in range(0,len(self.cart_link)-1):
+                cart = INFOCART(self.driver, self.cart_link[i])
+                cart.all_info_of_cart()
+                self.carts.append(cart.cart)
             # cart =[]
             # for title in titles:
             #     if title.text not in self.carts:
@@ -84,7 +96,7 @@ class Scraper:
         number_of_pages = int(re.search(r'\d+', event_name).group())
 
         #send the pages to the function click_button_and_scrap_page
-        for i in range(1, 3):
+        for i in range(1, 2):
             self.click_button_and_scrap_page(f'changePageUseCurrentBounds({i})')
             # yield self.carts[-1]
         self.driver.quit()
@@ -105,7 +117,7 @@ def scrape():
     #     scraper = Scraper()
     #     for i in scraper.scrape_activites('Fleuristes'):
     #         yield json.dumps({"Page":i})
-            
+
     # return Response(generate(), mimetype='text/event-stream')
 
 
