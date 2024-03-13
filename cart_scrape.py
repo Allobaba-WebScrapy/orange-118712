@@ -13,9 +13,7 @@ class INFOCART:
         self.driver.get(self.link)
         
         # number phone and email
-        
         try:
-            email_div = self.driver.find_elements(By.CLASS_NAME, 'fd_cta')
             button_email = WebDriverWait(self.driver, 0).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[2]/main/div[2]/div[1]/section[1]/div[1]/span[2]")))
             button_email.click()
         except:
