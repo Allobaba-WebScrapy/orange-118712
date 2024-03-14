@@ -4,9 +4,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium import webdriver
 class INFOCART:
-    def __init__(self, driver,link):
+    def __init__(self, driver,link,type):
         self.driver = driver
         self.link = link
+        self.type = type
+        self.b_to_b = []
+        self.b_to_c = []
+        self.type_of_cart = "b_to_b"
         self.cart = {"title": "", "category": "", "adress": "", "phone": [], "email": ""}
 
     def all_info_of_cart(self):
@@ -19,7 +23,7 @@ class INFOCART:
         except:
             self.cart["email"] = "not found"
                 
-        try:    
+        try:
             number_phone_div = self.driver.find_elements(By.CLASS_NAME, 'col-sm-4')
             for buttons in number_phone_div:
                 button = WebDriverWait(buttons, 10).until(EC.element_to_be_clickable((By.TAG_NAME, "span")))
@@ -39,6 +43,8 @@ class INFOCART:
                 
                 if info_test.startswith("tel:"):
                     phone_number = info_test.replace("tel:", "")
+                    if (phone_number.startswith("06") or phone_number.startswith("09")):
+                        self.type_of_cart = "b_to_c"
                     self.cart["phone"].append(phone_number)
                 else:
                     self.cart["email"] = info_test.replace("mailto:", "")
@@ -79,5 +85,18 @@ class INFOCART:
         except TimeoutException:
             self.cart["adress"] = "not found"
         
-        return self.cart
-    
+        if self.type_of_cart == "b_to_b":
+            self.b_to_b.append(self.cart)
+        else:
+            self.b_to_c.append(self.cart)
+        
+        if self.type == "b_to_c":
+            if self.b_to_c == []:
+                return None
+            return self.b_to_c[0]
+        elif self.type == "b_to_b":
+            if self.b_to_b == []:
+                return None
+            return self.b_to_b[0]
+        else:
+            return self.cart

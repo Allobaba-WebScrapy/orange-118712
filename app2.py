@@ -9,11 +9,13 @@ from cart_scrape import INFOCART
 from selenium.webdriver.chrome.options import Options
 from flask import Flask, jsonify , Response, request
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit
 import json
 from get_cart_link import link
 
 app = Flask(__name__)
 CORS(app, origins=['http://localhost:3000'])
+socketio = SocketIO(app, cors_allowed_origins='*')
 
 class Scraper:
     def __init__(self,activites_name,type,number_of_pages):
@@ -85,6 +87,28 @@ class Scraper:
         self.driver.quit()
 
 # Usage:
+# @app.route('/')
+# def index():
+#     return "Hello World!"
+
+# @app.route('/scrape', methods=['POST'])
+# def scrape():
+#     data = request.json
+#     activity_name = data['activityName']
+#     activity_type = data['activityType']
+#     number_of_pages = int(data['numberOfPages'])
+#     scraper = Scraper(activity_name, activity_type, number_of_pages)
+    
+#     def generate():
+#         for cart in scraper.scrape_activites():
+#             yield json.dumps({"Cart": cart}) + "\n"
+
+#     return Response(generate(), mimetype='text/event-stream')
+
+
+# if __name__ == "__main__":
+#     app.run(host = '0.0.0.0',port=5000)
+
 @app.route('/')
 def index():
     return "Hello World!"
@@ -95,7 +119,7 @@ def scrape():
     activity_name = data['activityName']
     activity_type = data['activityType']
     number_of_pages = int(data['numberOfPages'])
-    scraper = Scraper(activity_name,activity_type,number_of_pages)
+    scraper = Scraper(activity_name, activity_type, number_of_pages)
     
     def generate():
         for cart in scraper.scrape_activites():
@@ -103,7 +127,5 @@ def scrape():
 
     return Response(generate(), mimetype='text/event-stream')
 
-
-if __name__ == "__main__":
-    app.run(host = '0.0.0.0',port=5000)
-
+if __name__ == '__main__':
+    socketio.run(app, host='0.0.0.0', port=5000)
