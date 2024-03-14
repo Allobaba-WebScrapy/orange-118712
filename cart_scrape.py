@@ -10,7 +10,7 @@ class INFOCART:
         self.type = type
         self.b_to_b = []
         self.b_to_c = []
-        self.type_of_cart = "b_to_b"
+        self.type_of_cart = "b_to_c"
         self.cart = {"title": "", "category": "", "adress": "", "phone": [], "email": ""}
 
     def all_info_of_cart(self):
@@ -43,14 +43,14 @@ class INFOCART:
                 
                 if info_test.startswith("tel:"):
                     phone_number = info_test.replace("tel:", "")
-                    if (phone_number.startswith("06") or phone_number.startswith("09")):
-                        self.type_of_cart = "b_to_c"
+                    if (phone_number.startswith("01") or phone_number.startswith("02")) or phone_number.startswith("04") or phone_number.startswith("05"):
+                        self.type_of_cart = "b_to_b"
                     self.cart["phone"].append(phone_number)
                 else:
                     self.cart["email"] = info_test.replace("mailto:", "")
 
         except TimeoutException:
-            print("Timeout while waiting for elements to be visible.")
+            print("Timeout while waiting for email and phone number.")
 
         #---------title and category----------
         try:
@@ -72,7 +72,7 @@ class INFOCART:
             
             self.cart["category"] = category
         except TimeoutException:
-            print("Timeout while waiting for elements to be visible.")
+            print("Timeout while waiting for title and category.")
             
         #---------adress----------
         try:

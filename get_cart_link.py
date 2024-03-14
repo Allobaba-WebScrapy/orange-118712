@@ -22,4 +22,5 @@ def link(driver, timeout=10):
             link =encrypt.replace("//", "http://")
         if link not in cart_link:
             cart_link.append(link)
+            
     return cart_link

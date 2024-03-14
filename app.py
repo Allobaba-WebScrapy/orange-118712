@@ -36,9 +36,12 @@ class Scraper:
         try:
             cart_link = link(self.driver)
             for i in range(0,len(cart_link)):
-                cart = INFOCART(self.driver, cart_link[i]).all_info_of_cart()
-                self.carts.append(cart)
-                yield self.carts[-1]
+                cart = INFOCART(self.driver, cart_link[i],"b_to_b").all_info_of_cart()
+                if cart != None:
+                    self.carts.append(cart)
+                    yield self.carts[-1]
+                else:
+                    continue
                 
         except TimeoutException:
             print("Timeout while waiting for elements to be visible.")
@@ -83,13 +86,10 @@ def index():
 
 @app.route('/scrape')
 def scrape():
-    # scraper = Scraper()
-    # scraper.scrape_activites('Fleuristes')
-    # return jsonify(scraper.carts)
     def generate():
         scraper = Scraper()
         for cart in scraper.scrape_activites('Fleuristes'):
-            yield json.dumps({"Cart": cart}) + "\n"
+            yield json.dumps(cart) + "\n"
 
     return Response(generate(), mimetype='text/event-stream')
 
