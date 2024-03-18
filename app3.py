@@ -20,12 +20,6 @@ class Scraper:
         self.activites_name = activites_name
         self.number_of_pages = number_of_pages
         self.type = type
-        # chrome_options = Options()
-        # chrome_options.add_argument('--user-agent=Chrome/123.0.6312.31')
-        # chrome_options.add_argument('--headless')
-        # chrome_options.add_argument('--disable-gpu')
-        self.driver = webdriver.Chrome()
- 
 
         self.carts = []
         self.links = []
@@ -33,17 +27,30 @@ class Scraper:
 
     # Wait for the body element to be visible
     def click_button_and_get_data(self, onclick_value,first_link, timeout=10):
+        with SB(
+            uc_cdp=True,
+            guest_mode=True,
+            headless=False,
+            undetected=True,
+            timeout_multiplier=1,
+        ) as sb:
+            self.sb = sb
+            self.sb.set_window_size(600, 1200)
+            try:
+                self.sb.open("https://www.pagesjaunes.fr")
+                self.sb.wait_for_ready_state_complete(timeout=10)
+            except TimeoutException:
+                print("Page Jaune not found!")
+
         try:
-            button = WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, f"//button[@onclick='{onclick_value}']"))
-            )
-            button.click()
+            if self.sb.is_element_visible(xpath=f"//button[@onclick='{onclick_value}']"):
+                self.sb.click(xpath=f"//button[@onclick='{onclick_value}']")
 
         except TimeoutException:
             print("next page timeout")
 
         try:
-            cart_link = link(self.driver)
+            cart_link = link(self.sb)
             for link in cart_link:
                 if link not in self.links:
                     self.links.append(link)
@@ -56,23 +63,24 @@ class Scraper:
                 else:
                     continue
             self.links_scrape = []
-            self.driver.get(first_link)
+            self.sb.open(first_link)
+
 
         except TimeoutException:
             print("carts timeout")
 
     def scrape_activites(self):
-        activites = ActivitesScraper(self.driver).find_name_and_lien_of_activites()
+        activites = ActivitesScraper(self.sb).find_name_and_lien_of_activites()
 
         index_name = activites['name'].index(self.activites_name)
         links = activites['link']
         link = links[index_name]
 
-        self.driver.get(link)
+        self.sb.open(link)
 
         # click button of cookies
-        button2 = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button.btn')))
-        button2.click()
+        if self.sb.is_element_visible(class_name="button.btn"):
+                self.sb.click(class_name="button.btn")
 
         #find class name of last page
         j = 1
