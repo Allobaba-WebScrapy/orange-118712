@@ -1,4 +1,3 @@
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
 class INFOCART:
@@ -12,12 +11,12 @@ class INFOCART:
         self.cart = {"title": "", "category": "", "adress": "", "phone": [], "email": ""}
 
     def all_info_of_cart(self):
-        self.sb.get(self.link)
-        
+        self.sb.open(self.link)
+
         # number phone and email
         try:
-            if self.sb.is_element_visible(xpath= "/html/body/div[2]/main/div[2]/div[1]/section[1]/div[1]/span[2]"):
-                self.sb.click(xpath= "/html/body/div[2]/main/div[2]/div[1]/section[1]/div[1]/span[2]")
+            if self.sb.is_element_visible("c/html/body/div[2]/main/div[2]/div[1]/section[1]/div[1]/span[2]"):
+                self.sb.click(xpath= "xpath:/html/body/div[2]/main/div[2]/div[1]/section[1]/div[1]/span[2]")
         except:
             self.cart["email"] = "not found"
                 
@@ -51,20 +50,22 @@ class INFOCART:
         #---------title and category----------
         try:
             if self.sb.is_element_visible("div.teaser_bloc"):
-            
-                div_title_category = self.sb.find_elements('div.teaser_bloc')
                 try:
-                    title = div_title_category[0].find_element("h1").text
+                    div_title_category = self.sb.find_elements('div.teaser_bloc h1')
+                
+                    title = div_title_category.text
                     self.cart["title"] = title
                 except:
                     self.cart["title"] = "not found"
+
                 try:
-                    category = div_title_category[0].find_element("p").text
+                    div_title_category = self.sb.find_elements('div.teaser_bloc p')
+
+                    category = div_title_category.text
                     self.cart["category"] = category
                 except:
                     self.cart["category"] = "not found"
                 
-                self.cart["category"] = category
         except TimeoutException:
             print("Timeout while waiting for title and category.")
             

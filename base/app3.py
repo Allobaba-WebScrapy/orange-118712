@@ -24,8 +24,8 @@ class Scraper:
     # Wait for the body element to be visible
     def click_button_and_get_data(self, onclick_value,first_link,sb):
         try:
-            if sb.is_element_visible(xpath=f"//button[@onclick='{onclick_value}']"):
-                sb.click(xpath=f"//button[@onclick='{onclick_value}']")
+            if sb.is_element_visible(f"xpath://button[@onclick='{onclick_value}']"):
+                sb.click(f"xpath://button[@onclick='{onclick_value}']")
         except TimeoutException:
             print("next page timeout")
 
@@ -33,10 +33,10 @@ class Scraper:
             cart_links = link(sb)
             for cart_link in cart_links:
                 if cart_link not in self.links:
-                    self.links.append(link)
-                    self.links_scrape.append(link)
+                    self.links.append(cart_link)
+                    self.links_scrape.append(cart_link)
             for i in range(0,len(self.links_scrape)):
-                cart = INFOCART(self.driver, self.links_scrape[i],self.type).all_info_of_cart()
+                cart = INFOCART(sb, self.links_scrape[i],self.type).all_info_of_cart()
                 if cart != None:
                     self.carts.append(cart)
                     yield self.carts[-1]
@@ -65,27 +65,27 @@ class Scraper:
             except TimeoutException:
                 print("Page Jaune not found!")
 
-            activites = ActivitesScraper().find_name_and_lien_of_activites(self.sb)
+            activites = ActivitesScraper(self.sb).find_name_and_lien_of_activites()
 
             index_name = activites['name'].index(self.activites_name)
             links = activites['link']
             link = links[index_name]
 
-            self.sb.open(link)
-            self.sb.wait_for_ready_state_complete(timeout=20)
+            self.sb.wait_for_ready_state_complete(timeout=30)
 
+            self.sb.open(link)
             # click button of cookies
-            if self.sb.is_element_visible("button.button.btn"):
-                    self.sb.click("button.button.btn")      
+            if self.sb.wait_for_element_visible("button.btn-primary",timeout=5):
+                self.sb.click("button.btn-primary")   
 
             #find class name of last page
             j = 1
-            if self.driver.find_elements('button.len3'):
-                page_next = self.driver.find_elements('button.len3')
-            elif self.driver.find_elements('button.len2'):
-                page_next = self.driver.find_elements('button.len2')
+            if self.sb.find_elements('button.len3'):
+                page_next = self.sb.find_elements('button.len3')
+            elif self.sb.find_elements('button.len2'):
+                page_next = self.sb.find_elements('button.len2')
             else:
-                page_next = self.driver.find_elements('button.len1')
+                page_next = self.sb.find_elements('button.len1')
                 j = 2
 
             # get the number of pages
@@ -104,21 +104,22 @@ class Scraper:
 def index():
     return "Hello World!"
 
-@app.route('/setup', methods=['POST'])
-def setup():
-    global scraper
-    data = request.get_json()
-    activites_name = data['activites_name']
-    type = data['type']
-    number_of_pages = int(data['number_of_pages'])
-    scraper = Scraper(activites_name,type,number_of_pages)
-    return jsonify("ok")
+# @app.route('/setup', methods=['POST'])
+# def setup():
+#     global scraper
+#     data = request.get_json()
+#     activites_name = data['activites_name']
+#     type = data['type']
+#     number_of_pages = int(data['number_of_pages'])
+#     scraper = Scraper("Fleuristes","b_to_b",2)
+#     return jsonify("ok")
 
 
 @app.route('/scrape')
 def scrape():
     def generate():
         print("scraping")
+        scraper = Scraper("Fleuristes","b_to_b",2)
         for cart in scraper.scrape_activites():
             yield f"data: {json.dumps(cart)}\n\n"
         yield "event: done\ndata: Done\n\n"
@@ -127,5 +128,5 @@ def scrape():
 
 
 if __name__ == "__main__":
-    app.run(host = '0.0.0.0',port=5000)
+    app.run(host = '0.0.0.0',port=5500)
 
