@@ -1,7 +1,7 @@
 from seleniumbase import SB
 from selenium.common.exceptions import TimeoutException
 import re
-from select_activitesV2 import ActivitesScraper
+from select_activitesV3 import ActivitesScraper
 from cart_scrape import INFOCART
 from flask import Flask, jsonify , Response, request
 from flask_cors import CORS
@@ -56,13 +56,12 @@ class Scraper:
             headless=False,
             undetected=True,
             timeout_multiplier=1,
-            agent="Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.6261.119 Mobile Safari/537.36"
         ) as sb:
             self.sb = sb
             try:
                 self.sb.open("https://www.118712.fr/")
                 self.sb.wait_for_ready_state_complete(timeout=20)
-            except TimeoutException:
+            except:
                 print("Page Jaune not found!")
 
             activites = ActivitesScraper(self.sb).find_name_and_lien_of_activites()
@@ -96,6 +95,7 @@ class Scraper:
             #send the pages to the function click_button_and_get_data
             for i in range(1, self.number_of_pages):
                 yield from self.click_button_and_get_data(f'changePageUseCurrentBounds({i})',link,self.sb)
+            print(self.links)
 # Usage:
 
 
@@ -118,7 +118,7 @@ def index():
 def scrape():
     def generate():
         print("scraping")
-        scraper = Scraper("Fleuristes","all",3)
+        scraper = Scraper("Fleuristes","all",10)
         for cart in scraper.scrape_activites():
             yield f"data: {json.dumps(cart)}\n\n"
         yield "event: done\ndata: Done\n\n"

@@ -7,6 +7,12 @@ class ActivitesScraper:
     def find_name_and_lien_of_activites(self):
         list_de_name_activites = []
         list_de_lien_activites = []
+        try:
+            if self.sb.is_element_visible("section.homeHero-container"):
+                print("ok")
+        except:
+            print("Page Jaune not found!")
+            return
         
         if  self.sb.is_element_present("ul.dropdown-list"):
             list_activites = self.sb.find_elements("ul.dropdown-list li a")
