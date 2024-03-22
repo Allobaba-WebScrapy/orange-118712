@@ -12,9 +12,10 @@ app = Flask(__name__)
 CORS(app)
 
 class Scraper:
-    def __init__(self,activites_name,type,number_of_pages):
+    def __init__(self,activites_name,type,start_page,limit_page):
         self.activites_name = activites_name
-        self.number_of_pages = number_of_pages
+        self.start_page = start_page
+        self.limit_page = limit_page
         self.type = type
 
         self.carts = []
@@ -53,7 +54,7 @@ class Scraper:
         with SB(
             uc_cdp=True,
             guest_mode=True,
-            headless=False,
+            headless=True,
             undetected=True,
             timeout_multiplier=1,
         ) as sb:
@@ -93,9 +94,10 @@ class Scraper:
             number_of_pages = int(re.search(r'\d+', event_name).group())
 
             #send the pages to the function click_button_and_get_data
-            for i in range(1, self.number_of_pages):
-                yield from self.click_button_and_get_data(f'changePageUseCurrentBounds({i})',link,self.sb)
-            print(self.links)
+            for i in range(self.start_page, self.start_page + self.limit_page):
+                if  (i <= number_of_pages):
+                    yield from self.click_button_and_get_data(f'changePageUseCurrentBounds({i})',link,self.sb)
+
 # Usage:
 
 
@@ -106,14 +108,12 @@ def index():
 @app.route('/setup', methods=['POST'])
 def setup():
     global scraper
-    global activites_name
-    global type
-    global number_of_pages
     data = request.get_json()
     activites_name = data['activites_name']
     type = data['type']
-    number_of_pages = int(data['number_of_pages'])
-    scraper = Scraper(activites_name,type,number_of_pages)
+    start_pages = int(data['start_pages'])
+    limit_pages = int(data['limit_pages'])
+    scraper = Scraper(activites_name,type,start_pages,limit_pages)
     return jsonify("ok")
 
 
@@ -121,7 +121,7 @@ def setup():
 def scrape():
     def generate():
         print("scraping")
-        print(activites_name,type,number_of_pages)     
+
         for cart in scraper.scrape_activites():
             yield f"data: {json.dumps(cart)}\n\n"
         yield "event: done\ndata: Done\n\n"
