@@ -9,7 +9,7 @@ class ActivitesScraper:
         list_de_lien_activites = []
         try:
             if self.sb.wait_for_element_visible("section.homeHero-container", timeout=20):
-                print("ok")
+                yield {"type": "progress","message":"verefivation passed"}
         except:
             print("Page Jaune not found!")
             return

@@ -2,11 +2,11 @@ from seleniumbase import SB
 from selenium.common.exceptions import TimeoutException
 import re
 from select_activitesV3 import ActivitesScraper
-from cart_scrape import INFOCART
+from base.card_scrape import INFOCARD
 from flask import Flask, jsonify , Response, request
 from flask_cors import CORS
 import json
-from get_cart_link import link
+from get_card_link import link
 
 app = Flask(__name__)
 CORS(app)
@@ -18,29 +18,33 @@ class Scraper:
         self.limit_page = limit_page
         self.type = type
 
-        self.carts = []
+        self.cards = []
         self.links = []
         self.links_scrape = []
 
     # Wait for the body element to be visible
-    def click_button_and_get_data(self, onclick_value,first_link,sb):
+    def click_button_and_get_data(self, onclick_value,first_link,sb,index):
         try:
             if sb.is_element_visible(f"xpath://button[@onclick='{onclick_value}']"):
                 sb.click(f"xpath://button[@onclick='{onclick_value}']")
+                yield {"type": "progress","message":f"Scrape Page {index}/{self.limit_page}"}
         except TimeoutException:
             print("next page timeout")
 
         try:
-            cart_links = link(sb)
-            for cart_link in cart_links:
-                if cart_link not in self.links:
-                    self.links.append(cart_link)
-                    self.links_scrape.append(cart_link)
+            card_links = link(sb)
+            yield {"type": "progress","message":"Get Non Deplicate Card"}
+            for card_link in card_links:
+                if card_link not in self.links:
+                    self.links.append(card_link)
+                    self.links_scrape.append(card_link)
+            number_cards = len(self.links_scrape)
             for i in range(0,len(self.links_scrape)):
-                cart = INFOCART(sb, self.links_scrape[i],self.type).all_info_of_cart()
-                if cart != None:
-                    self.carts.append(cart)
-                    yield self.carts[-1]
+                yield {"type": "progress","message":f"Scrape Card {i+1}/{number_cards}"}
+                card = INFOCARD(sb, self.links_scrape[i],self.type).all_info_of_card()
+                if card != None:
+                    self.cards.append(card)
+                    yield self.cards[-1]
                 else:
                     continue
             self.links_scrape = []
@@ -48,13 +52,13 @@ class Scraper:
 
 
         except TimeoutException:
-            print("carts timeout")
+            print("cards timeout")
 
     def scrape_activites(self):
         with SB(
             uc_cdp=True,
             guest_mode=True,
-            headless=False,
+            headless=True,
             undetected=True,
             timeout_multiplier=1,
         ) as sb:
@@ -64,19 +68,21 @@ class Scraper:
                 self.sb.wait_for_ready_state_complete(timeout=20)
             except:
                 print("Page Jaune not found!")
-
+                yield {"type": "error","message":"Verification faild"}
+                
             activites = ActivitesScraper(self.sb).find_name_and_lien_of_activites()
 
             index_name = activites['name'].index(self.activites_name)
             links = activites['link']
             link = links[index_name]
+            yield {"type": "progress","message":"Check Activites"}
 
 
             self.sb.open(link)
-            self.sb.wait_for_ready_state_complete(timeout=20)
             # click button of cookies
-            if self.sb.wait_for_element_visible("button.btn-primary",timeout=5):
-                self.sb.click("button.btn-primary")   
+            if self.sb.wait_for_element_visible("button.btn-primary",timeout=10):
+                self.sb.click("button.btn-primary")
+            yield {"type": "progress","message":"Cockies accepted"}
 
             #find class name of last page
             j = 1
@@ -92,11 +98,12 @@ class Scraper:
             num_of_button_pageNext = len(page_next)
             event_name = page_next[num_of_button_pageNext - j].get_attribute("onclick")
             number_of_pages = int(re.search(r'\d+', event_name).group())
+            yield {"type": "progress","message":f"Number of page{number_of_pages}"}
 
             #send the pages to the function click_button_and_get_data
-            for i in range(self.start_page, self.start_page + self.limit_page):
+            for index,i in enumerate(range(self.start_page, self.start_page + self.limit_page)):
                 if  (i <= number_of_pages):
-                    yield from self.click_button_and_get_data(f'changePageUseCurrentBounds({i})',link,self.sb)
+                    yield from self.click_button_and_get_data(f'changePageUseCurrentBounds({i})',link,self.sb,index)
 
 # Usage:
 
@@ -120,15 +127,26 @@ def setup():
 @app.route('/scrape')
 def scrape():
     def generate():
-        print("scraping")
+        results = []
+        yield f"event: progress\ndata: {json.dumps({"type": "progress","message":"Scraping Starting"})}\n\n"
 
-        for cart in scraper.scrape_activites():
-            yield f"data: {json.dumps(cart)}\n\n"
-        yield "event: done\ndata: Done\n\n"
+        for result in scraper.scrape_activites():
+            if "progress" in result:
+                yield f"event: progress\ndata:{json.dumps(result)}\n\n"
+
+            elif "error" in result:
+                yield f"event: error\ndata:{json.dumps(result)}\n\n"
+            else:
+                results.append(result)
+                yield f"data: {json.dumps(result)}\n\n"
+        if(results):
+            yield "event: done\ndata: Done\n\n"
+        else:
+            yield f"event: error\ndata:{json.dumps({"type":"error", "message":"Verification failed No result"})}\n\n"
     return Response(generate(), mimetype='text/event-stream')
     
 
 
 if __name__ == "__main__":
-    app.run(host = '0.0.0.0',port=5200)
+    app.run(host = '0.0.0.0',port=5100)
 
