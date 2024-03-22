@@ -2,7 +2,7 @@ from seleniumbase import SB
 from selenium.common.exceptions import TimeoutException
 import re
 from select_activitesV3 import ActivitesScraper
-from base.card_scrape import INFOCARD
+from card_scrape import INFOCARD
 from flask import Flask, jsonify , Response, request
 from flask_cors import CORS
 import json
@@ -58,24 +58,21 @@ class Scraper:
         with SB(
             uc_cdp=True,
             guest_mode=True,
-            headless=True,
+            headless=False,
             undetected=True,
             timeout_multiplier=1,
         ) as sb:
             self.sb = sb
-            try:
-                self.sb.open("https://www.118712.fr/")
-                self.sb.wait_for_ready_state_complete(timeout=20)
-            except:
-                print("Page Jaune not found!")
-                yield {"type": "error","message":"Verification faild"}
+            self.sb.open("https://www.118712.fr/")
+            self.sb.wait_for_ready_state_complete(timeout=20)
+            
                 
-            activites = ActivitesScraper(self.sb).find_name_and_lien_of_activites()
+            activites =yield from ActivitesScraper(self.sb).find_name_and_lien_of_activites()
 
             index_name = activites['name'].index(self.activites_name)
             links = activites['link']
             link = links[index_name]
-            yield {"type": "progress","message":"Check Activites"}
+            # yield {"type": "progress","message":"Check Activites"}
 
 
             self.sb.open(link)
@@ -128,7 +125,7 @@ def setup():
 def scrape():
     def generate():
         results = []
-        yield f"event: progress\ndata: {json.dumps({"type": "progress","message":"Scraping Starting"})}\n\n"
+        yield f"event: progress\ndata: {json.dumps({'type': 'progress', 'message': 'Scraping Starting'})}\n\n"
 
         for result in scraper.scrape_activites():
             if "progress" in result:
@@ -136,13 +133,13 @@ def scrape():
 
             elif "error" in result:
                 yield f"event: error\ndata:{json.dumps(result)}\n\n"
-            else:
+            else:   
                 results.append(result)
                 yield f"data: {json.dumps(result)}\n\n"
         if(results):
             yield "event: done\ndata: Done\n\n"
         else:
-            yield f"event: error\ndata:{json.dumps({"type":"error", "message":"Verification failed No result"})}\n\n"
+            yield f"event: error\ndata:{json.dumps({'type':'error', 'message':'Verification failed No result'})}\n\n"
     return Response(generate(), mimetype='text/event-stream')
     
 

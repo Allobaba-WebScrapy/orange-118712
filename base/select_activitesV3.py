@@ -8,11 +8,10 @@ class ActivitesScraper:
         list_de_name_activites = []
         list_de_lien_activites = []
         try:
-            if self.sb.wait_for_element_visible("section.homeHero-container", timeout=20):
+            if self.sb.wait_for_element_visible("section.homeHero-container", timeout=10):
                 yield {"type": "progress","message":"verefivation passed"}
         except:
-            print("Page Jaune not found!")
-            return
+            print("not found!")
         
         if  self.sb.is_element_present("ul.dropdown-list"):
             list_activites = self.sb.find_elements("ul.dropdown-list li a")
