@@ -54,7 +54,7 @@ class Scraper:
         with SB(
             uc_cdp=True,
             guest_mode=True,
-            headless=True,
+            headless=False,
             undetected=True,
             timeout_multiplier=1,
         ) as sb:
@@ -130,5 +130,5 @@ def scrape():
 
 
 if __name__ == "__main__":
-    app.run(host = '0.0.0.0',port=5100)
+    app.run(host = '0.0.0.0',port=5200)
 
