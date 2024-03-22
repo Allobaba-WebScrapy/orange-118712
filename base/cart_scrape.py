@@ -1,4 +1,5 @@
 from selenium.common.exceptions import TimeoutException
+from seleniumbase import SB 
 
 class INFOCART:
     def __init__(self, sb,link,type):
@@ -12,20 +13,19 @@ class INFOCART:
 
     def all_info_of_cart(self):
         self.sb.open(self.link)
+        self.sb.wait_for_ready_state_complete(timeout=20)
 
         # number phone and email
         try:
-            if self.sb.is_element_visible("c/html/body/div[2]/main/div[2]/div[1]/section[1]/div[1]/span[2]"):
-                self.sb.click(xpath= "xpath:/html/body/div[2]/main/div[2]/div[1]/section[1]/div[1]/span[2]")
+            if self.sb.is_element_visible("/html/body/div[2]/main/div[2]/div[1]/section[1]/div[1]/span[2]"):
+                self.sb.click("/html/body/div[2]/main/div[2]/div[1]/section[1]/div[1]/span[2]")
         except:
             self.cart["email"] = "not found"
                 
         try:
             number_phone_div = self.sb.find_elements('div.col-sm-4')
-            for buttons in number_phone_div:
-                if self.sb.is_element_visible(f"{buttons} span"):
-                    self.sb.click(f"{buttons} span")
-
+            for button in number_phone_div:
+                button.click()
         except:
             self.cart["phone"] = "not found"
             
@@ -49,20 +49,22 @@ class INFOCART:
 
         #---------title and category----------
         try:
-            if self.sb.is_element_visible("div.teaser_bloc"):
                 try:
-                    div_title_category = self.sb.find_elements('div.teaser_bloc h1')
+                    if self.sb.is_element_visible("h1.h2"):
+                        div_title_category = self.sb.find_element('h1.h2')
                 
-                    title = div_title_category.text
-                    self.cart["title"] = title
+                        title = div_title_category.text
+                        self.cart["title"] = title
                 except:
                     self.cart["title"] = "not found"
 
                 try:
-                    div_title_category = self.sb.find_elements('div.teaser_bloc p')
+                    if self.sb.is_element_visible("p.teaser_category"):
 
-                    category = div_title_category.text
-                    self.cart["category"] = category
+                        div_title_category = self.sb.find_element('p.teaser_category')
+
+                        category = div_title_category.text
+                        self.cart["category"] = category
                 except:
                     self.cart["category"] = "not found"
                 
@@ -76,7 +78,8 @@ class INFOCART:
                 self.cart["adress"] = adress
         except TimeoutException:
             self.cart["adress"] = "not found"
-        
+
+        #-------------------------
         if self.type_of_cart == "b_to_b":
             self.b_to_b.append(self.cart)
         else:
@@ -92,3 +95,4 @@ class INFOCART:
             return self.b_to_b[0]
         else:
             return self.cart
+

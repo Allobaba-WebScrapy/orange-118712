@@ -94,7 +94,6 @@ class Scraper:
             number_of_pages = int(re.search(r'\d+', event_name).group())
 
             #send the pages to the function click_button_and_get_data
-            print(self.number_of_pages)
             for i in range(1, self.number_of_pages):
                 yield from self.click_button_and_get_data(f'changePageUseCurrentBounds({i})',link,self.sb)
 # Usage:
@@ -119,7 +118,7 @@ def index():
 def scrape():
     def generate():
         print("scraping")
-        scraper = Scraper("Fleuristes","b_to_b",2)
+        scraper = Scraper("Fleuristes","all",3)
         for cart in scraper.scrape_activites():
             yield f"data: {json.dumps(cart)}\n\n"
         yield "event: done\ndata: Done\n\n"
