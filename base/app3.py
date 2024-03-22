@@ -70,9 +70,9 @@ class Scraper:
             links = activites['link']
             link = links[index_name]
 
-            self.sb.wait_for_ready_state_complete(timeout=30)
 
             self.sb.open(link)
+            self.sb.wait_for_ready_state_complete(timeout=20)
             # click button of cookies
             if self.sb.wait_for_element_visible("button.btn-primary",timeout=5):
                 self.sb.click("button.btn-primary")   
@@ -103,22 +103,25 @@ class Scraper:
 def index():
     return "Hello World!"
 
-# @app.route('/setup', methods=['POST'])
-# def setup():
-#     global scraper
-#     data = request.get_json()
-#     activites_name = data['activites_name']
-#     type = data['type']
-#     number_of_pages = int(data['number_of_pages'])
-#     scraper = Scraper("Fleuristes","b_to_b",2)
-#     return jsonify("ok")
+@app.route('/setup', methods=['POST'])
+def setup():
+    global scraper
+    global activites_name
+    global type
+    global number_of_pages
+    data = request.get_json()
+    activites_name = data['activites_name']
+    type = data['type']
+    number_of_pages = int(data['number_of_pages'])
+    scraper = Scraper(activites_name,type,number_of_pages)
+    return jsonify("ok")
 
 
 @app.route('/scrape')
 def scrape():
     def generate():
         print("scraping")
-        scraper = Scraper("Fleuristes","all",10)
+        print(activites_name,type,number_of_pages)     
         for cart in scraper.scrape_activites():
             yield f"data: {json.dumps(cart)}\n\n"
         yield "event: done\ndata: Done\n\n"
@@ -127,5 +130,5 @@ def scrape():
 
 
 if __name__ == "__main__":
-    app.run(host = '0.0.0.0',port=5500)
+    app.run(host = '0.0.0.0',port=5100)
 

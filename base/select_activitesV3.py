@@ -8,7 +8,7 @@ class ActivitesScraper:
         list_de_name_activites = []
         list_de_lien_activites = []
         try:
-            if self.sb.is_element_visible("section.homeHero-container"):
+            if self.sb.wait_for_element_visible("section.homeHero-container", timeout=20):
                 print("ok")
         except:
             print("Page Jaune not found!")

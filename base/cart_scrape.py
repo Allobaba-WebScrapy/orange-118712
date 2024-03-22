@@ -6,9 +6,9 @@ class INFOCART:
         self.sb = sb
         self.link = link
         self.type = type
-        self.b_to_b = []
-        self.b_to_c = []
-        self.type_of_cart = "b_to_c"
+        self.B2B = []
+        self.B2C = []
+        self.type_of_cart = "B2C"
         self.cart = {"title": "", "category": "", "adress": "", "phone": [], "email": ""}
 
     def all_info_of_cart(self):
@@ -39,7 +39,7 @@ class INFOCART:
                     if info_test.startswith("tel:"):
                         phone_number = info_test.replace("tel:", "")
                         if (phone_number.startswith("01") or phone_number.startswith("02")) or phone_number.startswith("04") or phone_number.startswith("05"):
-                            self.type_of_cart = "b_to_b"
+                            self.type_of_cart = "B2B"
                         self.cart["phone"].append(phone_number)
                     else:
                         self.cart["email"] = info_test.replace("mailto:", "")
@@ -80,19 +80,19 @@ class INFOCART:
             self.cart["adress"] = "not found"
 
         #-------------------------
-        if self.type_of_cart == "b_to_b":
-            self.b_to_b.append(self.cart)
+        if self.type_of_cart == "B2B":
+            self.B2B.append(self.cart)
         else:
-            self.b_to_c.append(self.cart)
+            self.B2C.append(self.cart)
         
-        if self.type == "b_to_c":
-            if self.b_to_c == []:
+        if self.type == "B2C":
+            if self.B2C == []:
                 return None
-            return self.b_to_c[0]
-        elif self.type == "b_to_b":
-            if self.b_to_b == []:
+            return self.B2C[0]
+        elif self.type == "B2B":
+            if self.B2B == []:
                 return None
-            return self.b_to_b[0]
+            return self.B2B[0]
         else:
             return self.cart
 
