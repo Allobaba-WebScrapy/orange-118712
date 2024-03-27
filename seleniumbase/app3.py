@@ -60,7 +60,7 @@ class Scraper:
         with SB(
             uc_cdp=True,
             guest_mode=True,
-            headless=False,
+            headless=True,
             undetected=True,
             timeout_multiplier=1,
         ) as sb:
@@ -84,37 +84,38 @@ class Scraper:
                     list_de_lien_activites.append(a.get_attribute("href"))
                     list_de_name_activites.append(a.get_attribute("innerHTML").replace('\n', ''))
 
-            index_name = list_de_name_activites.index(self.activites_name)
-            links = list_de_lien_activites
-            link = links[index_name]
-            self.sb.open(link)
+            try:
+                index_name = list_de_name_activites.index(self.activites_name)
+                links = list_de_lien_activites
+                link = links[index_name]
+                self.sb.open(link)
 
-            # click button of cookies
-            if self.sb.wait_for_element_visible("button.btn-primary",timeout=10):
-                self.sb.click("button.btn-primary")
-            # yield {"type": "progress","message":"Cockies accepted"}
+                # click button of cookies
+                if self.sb.wait_for_element_visible("button.btn-primary",timeout=10):
+                    self.sb.click("button.btn-primary")
+                # yield {"type": "progress","message":"Cockies accepted"}
 
-            #find class name of last page
-            j = 1
-            if self.sb.find_elements('button.len3'):
-                page_next = self.sb.find_elements('button.len3')
-            elif self.sb.find_elements('button.len2'):
-                page_next = self.sb.find_elements('button.len2')
-            else:
-                page_next = self.sb.find_elements('button.len1')
-                j = 2
+                #find class name of last page
+                j = 1
+                if self.sb.find_elements('button.len3'):
+                    page_next = self.sb.find_elements('button.len3')
+                elif self.sb.find_elements('button.len2'):
+                    page_next = self.sb.find_elements('button.len2')
+                else:
+                    page_next = self.sb.find_elements('button.len1')
+                    j = 2
 
-            # get the number of pages
-            num_of_button_pageNext = len(page_next)
-            event_name = page_next[num_of_button_pageNext - j].get_attribute("onclick")
-            number_of_pages = int(re.search(r'\d+', event_name).group())
+                # get the number of pages
+                num_of_button_pageNext = len(page_next)
+                event_name = page_next[num_of_button_pageNext - j].get_attribute("onclick")
+                number_of_pages = int(re.search(r'\d+', event_name).group())
 
-            #send the pages to the function click_button_and_get_data
-            for index,i in enumerate(range(self.start_page, self.start_page + self.limit_page)):
-                if  (i <= number_of_pages):
-                    yield from self.click_button_and_get_data(f'changePageUseCurrentBounds({i})',link,self.sb,index+1)
-
-
+                #send the pages to the function click_button_and_get_data
+                for index,i in enumerate(range(self.start_page, self.start_page + self.limit_page)):
+                    if  (i <= number_of_pages):
+                        yield from self.click_button_and_get_data(f'changePageUseCurrentBounds({i})',link,self.sb,index+1)
+            except:
+                yield {"type":"error","message":"Verification failed"}
 # Usage:
 
 
