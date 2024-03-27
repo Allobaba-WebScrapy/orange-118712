@@ -23,7 +23,7 @@ class Scraper:
     # Wait for the body element to be visible
     def click_button_and_get_data(self, onclick_value,first_link,sb,index):
 
-        yield {"type": "progress","message":f"Scrape Page {index}/{self.limit_page}","card_progress":{{"nCard":0, "length":0}}}
+        yield {"type": "progress","message":f"Scrape Page {index}/{self.limit_page}"}
 
         try:
             if sb.is_element_visible(f"xpath://button[@onclick='{onclick_value}']"):
@@ -33,7 +33,7 @@ class Scraper:
 
         try:
             card_links = link(sb)
-            yield {"type": "progress","message":"Get Non Deplicate Card"}
+            yield {"type": "progress","message":"Get Non Deplicate Card","card_progress":{"nCard":0, "length":0}}
             for card_link in card_links:
                 if card_link not in self.links:
                     self.links.append(card_link)
@@ -83,38 +83,37 @@ class Scraper:
                 for a in list_activites:
                     list_de_lien_activites.append(a.get_attribute("href"))
                     list_de_name_activites.append(a.get_attribute("innerHTML").replace('\n', ''))
-            try:
-                index_name = list_de_name_activites.index(self.activites_name)
-                links = list_de_lien_activites
-                link = links[index_name]
-                self.sb.open(link)
 
-                # click button of cookies
-                if self.sb.wait_for_element_visible("button.btn-primary",timeout=10):
-                    self.sb.click("button.btn-primary")
-                # yield {"type": "progress","message":"Cockies accepted"}
+            index_name = list_de_name_activites.index(self.activites_name)
+            links = list_de_lien_activites
+            link = links[index_name]
+            self.sb.open(link)
 
-                #find class name of last page
-                j = 1
-                if self.sb.find_elements('button.len3'):
-                    page_next = self.sb.find_elements('button.len3')
-                elif self.sb.find_elements('button.len2'):
-                    page_next = self.sb.find_elements('button.len2')
-                else:
-                    page_next = self.sb.find_elements('button.len1')
-                    j = 2
+            # click button of cookies
+            if self.sb.wait_for_element_visible("button.btn-primary",timeout=10):
+                self.sb.click("button.btn-primary")
+            # yield {"type": "progress","message":"Cockies accepted"}
 
-                # get the number of pages
-                num_of_button_pageNext = len(page_next)
-                event_name = page_next[num_of_button_pageNext - j].get_attribute("onclick")
-                number_of_pages = int(re.search(r'\d+', event_name).group())
+            #find class name of last page
+            j = 1
+            if self.sb.find_elements('button.len3'):
+                page_next = self.sb.find_elements('button.len3')
+            elif self.sb.find_elements('button.len2'):
+                page_next = self.sb.find_elements('button.len2')
+            else:
+                page_next = self.sb.find_elements('button.len1')
+                j = 2
 
-                #send the pages to the function click_button_and_get_data
-                for index,i in enumerate(range(self.start_page, self.start_page + self.limit_page)):
-                    if  (i <= number_of_pages):
-                        yield from self.click_button_and_get_data(f'changePageUseCurrentBounds({i})',link,self.sb,index+1)
-            except:
-                print("activites not found")
+            # get the number of pages
+            num_of_button_pageNext = len(page_next)
+            event_name = page_next[num_of_button_pageNext - j].get_attribute("onclick")
+            number_of_pages = int(re.search(r'\d+', event_name).group())
+
+            #send the pages to the function click_button_and_get_data
+            for index,i in enumerate(range(self.start_page, self.start_page + self.limit_page)):
+                if  (i <= number_of_pages):
+                    yield from self.click_button_and_get_data(f'changePageUseCurrentBounds({i})',link,self.sb,index+1)
+
 
 # Usage:
 
