@@ -111,6 +111,7 @@ class Scraper:
                 number_of_pages = int(re.search(r'\d+', event_name).group())
                 if (self.start_page > number_of_pages):
                     yield {"type":"error","message":"The start page is greater than the number of pages"}
+                    return
                 elif (self.start_page + self.limit_page > number_of_pages + 1):
                     self.limit_page = number_of_pages - self.start_page
 
