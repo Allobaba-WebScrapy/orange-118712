@@ -109,6 +109,10 @@ class Scraper:
                 num_of_button_pageNext = len(page_next)
                 event_name = page_next[num_of_button_pageNext - j].get_attribute("onclick")
                 number_of_pages = int(re.search(r'\d+', event_name).group())
+                if (self.start_page > number_of_pages):
+                    yield {"type":"error","message":"The start page is greater than the number of pages"}
+                elif (self.start_page + self.limit_page > number_of_pages + 1):
+                    self.limit_page = number_of_pages - self.start_page
 
                 #send the pages to the function click_button_and_get_data
                 for index,i in enumerate(range(self.start_page, self.start_page + self.limit_page)):
