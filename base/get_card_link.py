@@ -1,7 +1,5 @@
-from selenium.webdriver.support import expected_conditions as EC
 import re
 from url_encrypted import encrypt_url
-from seleniumbase import SB 
 
 def link(sb):
 
@@ -25,18 +23,3 @@ def link(sb):
         
                 
         return card_link
-                
-# with SB(
-#              uc_cdp=True,
-#             guest_mode=True,
-#             headless=False,
-#             undetected=True,
-#             timeout_multiplier=1,
-#         ) as sb:
-#             sb = sb
-#             try:
-#                 sb.open("https://www.118712.fr/activite/fleuristes")
-#                 sb.wait_for_ready_state_complete(timeout=20)
-#             except TimeoutException:
-#                 print("Page Jaune not found!")
-#             print(link(sb))

@@ -1,6 +1,3 @@
-from selenium.common.exceptions import TimeoutException
-from seleniumbase import SB 
-
 class INFOCARD:
     def __init__(self, sb,link,type):
         self.sb = sb
@@ -44,7 +41,7 @@ class INFOCARD:
                     else:
                         self.card["email"] = info_test.replace("mailto:", "")
 
-        except TimeoutException:
+        except:
             print("Timeout while waiting for email and phone number.")
 
         #---------title and category----------
@@ -68,7 +65,7 @@ class INFOCARD:
                 except:
                     self.card["category"] = "not found"
                 
-        except TimeoutException:
+        except:
             print("Timeout while waiting for title and category.")
             
         #---------adress----------
@@ -76,7 +73,7 @@ class INFOCARD:
             if self.sb.is_element_visible("span.adress_label"):
                 adress = self.sb.find_element('span.adress_label').text
                 self.card["adress"] = adress
-        except TimeoutException:
+        except:
             self.card["adress"] = "not found"
 
         #-------------------------

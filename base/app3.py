@@ -1,5 +1,4 @@
 from seleniumbase import SB
-from selenium.common.exceptions import TimeoutException
 import re
 from card_scrape import INFOCARD
 from flask import Flask, jsonify , Response, request
@@ -24,12 +23,12 @@ class Scraper:
     # Wait for the body element to be visible
     def click_button_and_get_data(self, onclick_value,first_link,sb,index):
 
-        yield {"type": "progress","message":f"Scrape Page {index}/{self.limit_page}"}
+        yield {"type": "progress","message":f"Scrape Page {index}/{self.limit_page}","card_progress":{}}
 
         try:
             if sb.is_element_visible(f"xpath://button[@onclick='{onclick_value}']"):
                 sb.click(f"xpath://button[@onclick='{onclick_value}']")
-        except TimeoutException:
+        except:
             print("next page timeout")
 
         try:
@@ -44,18 +43,17 @@ class Scraper:
                 yield {"type": "progress","message":"All Card is Duplicate"}
 
             for i in range(0,number_cards):
-                yield {"type": "progress","message":"Scrape Card", "procsess":{"nCard":i+1, "length":number_cards}}
                 card = INFOCARD(sb, self.links_scrape[i],self.type).all_info_of_card()
                 if card != None:
                     self.cards.append(card)
-                    yield {"type":"response","message":self.cards[-1]}
+                    yield {"type":"response","message":self.cards[-1],"process":{"nCard":i+1, "length":number_cards}}
                 else:
                     continue
             self.links_scrape = []
             sb.open(first_link)
 
 
-        except TimeoutException:
+        except:
             print("cards timeout")
 
     def scrape_activites(self):
@@ -89,7 +87,6 @@ class Scraper:
             index_name = list_de_name_activites.index(self.activites_name)
             links = list_de_lien_activites
             link = links[index_name]
-            yield {"type": "progress","message":"Check Activites"}
 
 
             self.sb.open(link)
@@ -112,7 +109,6 @@ class Scraper:
             num_of_button_pageNext = len(page_next)
             event_name = page_next[num_of_button_pageNext - j].get_attribute("onclick")
             number_of_pages = int(re.search(r'\d+', event_name).group())
-            yield {"type": "progress","message":f"Number of page {number_of_pages}"}
 
             #send the pages to the function click_button_and_get_data
             for index,i in enumerate(range(self.start_page, self.start_page + self.limit_page)):
