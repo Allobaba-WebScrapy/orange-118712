@@ -117,6 +117,7 @@ class Scraper:
                     return
                 elif (self.start_page + self.limit_page > number_of_pages + 1):
                     self.limit_page = number_of_pages - self.start_page + 1
+                    yield {"type":"progress","message":f"Limit number is greater than the total page number! Adjusted to {self.limit_page}"}
 
                 #send the pages to the function click_button_and_get_data
                 for index,i in enumerate(range(self.start_page, self.start_page + self.limit_page)):
