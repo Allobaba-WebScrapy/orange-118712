@@ -45,19 +45,19 @@ class Scraper:
             card_that_scrape = 0
             for i in range(0,number_cards):
                 card = INFOCARD(sb, self.links_scrape[i],self.type).all_info_of_card()
-                yield {"type":"response","message":self.cards[-1],"process":{"nCard":i+1, "length":number_cards}}
+                print(card)
                 if card != None:
                     self.cards.append(card)
                     card_that_scrape += 1
+                    yield {"type":"response","message":self.cards[-1],"process":{"nCard":i+1, "length":number_cards}}
                 else:
-                    continue
+                    yield {"type":"response","process":{"nCard":i+1, "length":number_cards}}
+
             yield {"type": "progress","message":f"{card_that_scrape} {self.type} cards successfully scraped"}
             self.links_scrape = []
             sb.open(first_link)
-
-
         except:
-            print("cards timeout")
+            yield {"type":"error","message":"Error in scraping cards"}
 
     def scrape_activites(self):
         with SB(
@@ -76,7 +76,7 @@ class Scraper:
             list_de_lien_activites = []
             try:
                 if self.sb.wait_for_element_visible("section.homeHero-container",timeout=10):
-                    yield {"type": "progress","message":"verefivation passed"}
+                    yield {"type": "progress","message":"Verefivation passed"}
             except:
                 print("verefecation fails")
             
