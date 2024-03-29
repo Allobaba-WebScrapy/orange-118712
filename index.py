@@ -44,9 +44,9 @@ class Scraper:
 
             for i in range(0,number_cards):
                 card = INFOCARD(sb, self.links_scrape[i],self.type).all_info_of_card()
+                yield {"type":"response","message":self.cards[-1],"process":{"nCard":i+1, "length":number_cards}}
                 if card != None:
                     self.cards.append(card)
-                    yield {"type":"response","message":self.cards[-1],"process":{"nCard":i+1, "length":number_cards}}
                 else:
                     continue
             self.links_scrape = []
