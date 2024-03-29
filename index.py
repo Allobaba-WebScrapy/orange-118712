@@ -113,7 +113,7 @@ class Scraper:
                     yield {"type":"error","message":"The start page is greater than the number of pages"}
                     return
                 elif (self.start_page + self.limit_page > number_of_pages + 1):
-                    self.limit_page = number_of_pages - self.start_page
+                    self.limit_page = number_of_pages - self.start_page + 1
 
                 #send the pages to the function click_button_and_get_data
                 for index,i in enumerate(range(self.start_page, self.start_page + self.limit_page)):
