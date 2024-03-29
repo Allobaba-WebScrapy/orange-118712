@@ -42,13 +42,16 @@ class Scraper:
             if number_cards == 0:
                 yield {"type": "progress","message":"All Card is Duplicate"}
 
+            card_that_scrape = 0
             for i in range(0,number_cards):
                 card = INFOCARD(sb, self.links_scrape[i],self.type).all_info_of_card()
                 yield {"type":"response","message":self.cards[-1],"process":{"nCard":i+1, "length":number_cards}}
                 if card != None:
                     self.cards.append(card)
+                    card_that_scrape += 1
                 else:
                     continue
+            yield {"type": "progress","message":f"{card_that_scrape} {self.type} cards successfully scraped"}
             self.links_scrape = []
             sb.open(first_link)
 
